@@ -12,7 +12,7 @@ object WebApp extends App {
   case class Message(message: String)
   implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make
 
-  val app = Http.collect[Request] {
+  val app = Http.collect {
     case Method.GET -> Root / "plaintext" => Response.text(message)
     case Method.GET -> Root / "json"      => Response.jsonString(writeToString(Message(message)))
   }
