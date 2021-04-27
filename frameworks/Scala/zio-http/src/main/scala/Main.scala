@@ -19,7 +19,7 @@ object WebApp extends App {
     case Method.GET -> Root / "json"      => Response.jsonString(writeToString(Message(message)))
   }
 
-  val server = Server.port(port) ++ Server.app(app)
+  val server = Server.port(port) ++ Server.app(app) ++ Server.disableLeakDetection
 
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
     val nThreads: Int = args.headOption.flatMap(_.toIntOption).getOrElse(0)
