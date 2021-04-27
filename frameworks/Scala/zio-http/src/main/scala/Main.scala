@@ -28,7 +28,7 @@ object WebApp extends App {
     server.make
       .use(_ =>
         // Waiting for the server to start
-        console.putStrLn(s"Server started on port ${port} and nThreds: ${nThreads}")
+        console.putStrLn(s"Server started on port ${port} and nThreads: ${nThreads}")
 
           // Ensures the server doesn't die after printing
           *> ZIO.never,
