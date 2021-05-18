@@ -45,17 +45,29 @@ object Netty extends App {
       ctx: ChannelHandlerContext,
       jReq: HttpRequest,
     ): Unit = {
-      val buf      = Unpooled.wrappedBuffer(helloNetty)
-      val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
+      jReq.uri() match {
+        case "/plaintext" =>
+          val buf      = Unpooled.wrappedBuffer(helloNetty)
+          val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
 
-      response.headers
-        .set(HttpHeaderNames.CONTENT_LENGTH, STATIC_PLAINTEXT_LEN)
-        .set(HttpHeaderNames.SERVER, serverName)
-        .set(HttpHeaderNames.DATE, date)
-        .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
+          response.headers
+            .set(HttpHeaderNames.CONTENT_LENGTH, STATIC_PLAINTEXT_LEN)
+            .set(HttpHeaderNames.SERVER, serverName)
+            .set(HttpHeaderNames.DATE, date)
+            .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
 
-      ctx.write(response, ctx.voidPromise())
+          ctx.write(response, ctx.voidPromise())
+        case _            =>
+          val response = new DefaultFullHttpResponse(
+            HttpVersion.HTTP_1_1,
+            HttpResponseStatus.NOT_FOUND,
+            Unpooled.EMPTY_BUFFER,
+            false,
+          )
+          ctx.write(response).addListener(ChannelFutureListener.CLOSE)
+      }
       ()
+
     }
 
     override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
