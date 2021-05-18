@@ -39,7 +39,10 @@ object Netty extends App {
       ctx.flush()
       ()
     }
-    override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = super.exceptionCaught(ctx, cause)
+    override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
+      ctx.close()
+      ()
+    }
   }
 
   class NettyServer {
