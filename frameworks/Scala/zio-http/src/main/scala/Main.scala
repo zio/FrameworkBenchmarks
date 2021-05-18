@@ -39,6 +39,10 @@ object Netty extends App {
       ctx.flush()
       ()
     }
+    override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
+      ctx.flush()
+      ()
+    }
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
       ctx.close()
       ()
