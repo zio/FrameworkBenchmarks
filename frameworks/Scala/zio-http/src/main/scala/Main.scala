@@ -17,24 +17,24 @@ import java.time.format.DateTimeFormatter
  * Handles a server-side channel.
  */
 object Netty extends App {
-  private val helloNetty = "Hello, World!".getBytes(CharsetUtil.UTF_8);
+  val helloNetty = "Hello, World!".getBytes(CharsetUtil.UTF_8);
   private val STATIC_PLAINTEXT_LEN = helloNetty.length
   val serverName = "ZIO-Http"
-  class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](true) {
+  class NettyHandler extends SimpleChannelInboundHandler[HttpRequest](true) {
 
     override def channelRead0(
                                ctx: ChannelHandlerContext,
-                               jReq: FullHttpRequest
+                               jReq: HttpRequest
                              ): Unit = {
       val buf = Unpooled.wrappedBuffer(helloNetty)
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
 
-      response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, STATIC_PLAINTEXT_LEN)
+      response.headers.set(HttpHeaderNames.CONTENT_LENGTH, STATIC_PLAINTEXT_LEN)
         .set(HttpHeaderNames.SERVER, serverName)
         .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
         .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
 
-      ctx.write(response)
+      ctx.write(response, ctx.voidPromise())
       ()
     }
 
@@ -57,7 +57,6 @@ object Netty extends App {
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
         pipeline.addLast(new HttpServerCodec())
-        pipeline.addLast(new HttpObjectAggregator(Int.MaxValue))
         pipeline.addLast(new NettyHandler())
         ()
       }
