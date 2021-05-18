@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter
  * Handles a server-side channel.
  */
 object Netty extends App {
-  val helloNetty = "Hello World"
+  val helloNetty = "Hello, World!"
   val serverName = "ZIO-Http"
   class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](false) {
 
