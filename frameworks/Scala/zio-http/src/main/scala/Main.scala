@@ -7,7 +7,9 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
-import io.netty.util.CharsetUtil
+import io.netty.util.ResourceLeakDetector.Level
+import io.netty.util.{CharsetUtil, ResourceLeakDetector}
+
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
