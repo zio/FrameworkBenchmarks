@@ -4,8 +4,8 @@ This is the ZIO Http portion of a [benchmarking test suite](../) comparing a var
 
 ### Test Type Implementation Source Code
 
-* [JSON](src/main/scala/Main.scala)
-* [PLAINTEXT](src/main/scala/Main.scala)
+* [JSON](src/main/scala/Main3.scala)
+* [PLAINTEXT](src/main/scala/Main3.scala)
 
 ## Versions
 
