@@ -8,7 +8,6 @@ import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil
-
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -29,6 +28,7 @@ object Netty extends App {
         .set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
         .set(HttpHeaderNames.SERVER, serverName)
         .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
+        .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
       ctx.write(new DefaultHttpResponse(
         HttpVersion.HTTP_1_1,
         HttpResponseStatus.OK,
