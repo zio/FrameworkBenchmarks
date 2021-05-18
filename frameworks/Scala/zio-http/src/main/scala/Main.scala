@@ -18,14 +18,14 @@ import java.time.format.DateTimeFormatter
  */
 object Netty extends App {
   val helloNetty = "Hello, World!"
+  val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
   val serverName = "ZIO-Http"
-  class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](true) {
+  class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](false) {
 
     override def channelRead0(
                                ctx: ChannelHandlerContext,
                                jReq: FullHttpRequest
                              ): Unit = {
-      val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
 
       response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
