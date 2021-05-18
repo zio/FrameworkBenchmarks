@@ -1,4 +1,3 @@
-/*
 import zhttp.http._
 import zhttp.service._
 import zhttp.service.server.ServerChannelFactory
@@ -9,7 +8,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 object WebApp extends App {
-  val port: Int = 8080
+  val port: Int                               = 8080
   val message: String                         = "Hello, World!"
   def createDate: String                      = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)
   case class Message(message: String)
@@ -31,7 +30,7 @@ object WebApp extends App {
         // Waiting for the server to start
         console.putStrLn(s"Server started on port ${port} and nThreads: ${nThreads}")
 
-          // Ensures the server doesn't die after printing
+        // Ensures the server doesn't die after printing
           *> ZIO.never,
       )
       .provideCustomLayer(ServerChannelFactory.auto ++ EventLoopGroup.auto(nThreads))
@@ -39,4 +38,3 @@ object WebApp extends App {
   }
 
 }
-*/

@@ -1,3 +1,4 @@
+/*
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel._
@@ -127,3 +128,4 @@ object Netty extends App {
 
   new NettyServer().run()
 }
+*/
