@@ -8,7 +8,7 @@ import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.util.ResourceLeakDetector.Level
-import io.netty.util.{CharsetUtil, ReferenceCountUtil, ResourceLeakDetector}
+import io.netty.util.{CharsetUtil, ResourceLeakDetector}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -19,36 +19,29 @@ import java.time.format.DateTimeFormatter
 object Netty extends App {
   val helloNetty = "Hello, World!"
   val serverName = "ZIO-Http"
-  class NettyHandler extends ChannelInboundHandlerAdapter {
+  class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](true) {
 
-    override def channelRead(
-                              ctx: ChannelHandlerContext,
-                              msg: Any
-                            ): Unit = {
-      msg match {
-        case _: HttpRequest => try {
-          val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
-          val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
+    override def channelRead0(
+                               ctx: ChannelHandlerContext,
+                               jReq: FullHttpRequest
+                             ): Unit = {
+      val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
+      val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
 
-          response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
-            .set(HttpHeaderNames.SERVER, serverName)
-            .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
-            .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
+      response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
+        .set(HttpHeaderNames.SERVER, serverName)
+        .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
+        .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
 
-          ctx.write(response)
-        } finally {
-          ReferenceCountUtil.release(msg)
-          ()
-        }
-        case _ => ()
-      }
+      ctx.write(response)
       ()
     }
-    override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
+
+    override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
       ctx.flush()
       ()
     }
-    override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
+    override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
       ctx.flush()
       ()
     }
