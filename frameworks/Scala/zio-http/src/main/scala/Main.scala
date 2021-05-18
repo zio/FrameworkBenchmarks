@@ -9,7 +9,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.util.ResourceLeakDetector.Level
 import io.netty.util.{CharsetUtil, ResourceLeakDetector}
-
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -33,10 +32,13 @@ object Netty extends App {
         .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
         .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
 
-      ctx.writeAndFlush(response)
+      ctx.write(response)
       ()
     }
-
+    override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
+      ctx.flush()
+      ()
+    }
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = super.exceptionCaught(ctx, cause)
   }
 
