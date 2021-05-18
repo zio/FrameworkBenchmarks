@@ -17,15 +17,15 @@ import java.time.format.DateTimeFormatter
  * Handles a server-side channel.
  */
 object Netty extends App {
-  val helloNetty = "Hello, World!"
-  val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
+  val helloNetty = "Hello, World!".getBytes(CharsetUtil.UTF_8);
   val serverName = "ZIO-Http"
-  class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](false) {
+  class NettyHandler extends SimpleChannelInboundHandler[FullHttpRequest](true) {
 
     override def channelRead0(
                                ctx: ChannelHandlerContext,
                                jReq: FullHttpRequest
                              ): Unit = {
+      val buf = Unpooled.wrappedBuffer(helloNetty)
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
 
       response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
