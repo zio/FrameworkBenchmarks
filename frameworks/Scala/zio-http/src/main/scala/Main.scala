@@ -26,18 +26,14 @@ object Netty extends App {
                                jReq: FullHttpRequest
                              ): Unit = {
       val buf = Unpooled.copiedBuffer(helloNetty, CharsetUtil.UTF_8)
-      val headers: HttpHeaders = new DefaultHttpHeaders()
-        .set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
+      val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
+
+      response.headers.set(HttpHeaders.Names.CONTENT_LENGTH, buf.readableBytes)
         .set(HttpHeaderNames.SERVER, serverName)
         .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
         .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
-      ctx.write(new DefaultHttpResponse(
-        HttpVersion.HTTP_1_1,
-        HttpResponseStatus.OK,
-        headers
-      ))
-      ctx.write(buf)
-      ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+
+      ctx.writeAndFlush(response)
       ()
     }
 
