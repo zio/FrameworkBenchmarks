@@ -12,26 +12,46 @@ import io.netty.util.{CharsetUtil, ResourceLeakDetector}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
 /**
  * Handles a server-side channel.
  */
 object Netty extends App {
-  val helloNetty = "Hello, World!".getBytes(CharsetUtil.UTF_8);
+  val helloNetty                   = "Hello, World!".getBytes(CharsetUtil.UTF_8);
   private val STATIC_PLAINTEXT_LEN = helloNetty.length
-  val serverName = "ZIO-Http"
+  val serverName                   = "ZIO-Http"
+  @volatile
+  var date                         = s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}"
+
+  import java.util.concurrent.Executors
+
+  private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+
+  scheduler.scheduleWithFixedDelay(
+    new Runnable() {
+      override def run(): Unit = {
+        date = s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}"
+      }
+    },
+    1000,
+    1000,
+    TimeUnit.MILLISECONDS,
+  )
+
   class NettyHandler extends SimpleChannelInboundHandler[HttpRequest](true) {
 
     override def channelRead0(
-                               ctx: ChannelHandlerContext,
-                               jReq: HttpRequest
-                             ): Unit = {
-      val buf = Unpooled.wrappedBuffer(helloNetty)
+      ctx: ChannelHandlerContext,
+      jReq: HttpRequest,
+    ): Unit = {
+      val buf      = Unpooled.wrappedBuffer(helloNetty)
       val response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf, false)
 
-      response.headers.set(HttpHeaderNames.CONTENT_LENGTH, STATIC_PLAINTEXT_LEN)
+      response.headers
+        .set(HttpHeaderNames.CONTENT_LENGTH, STATIC_PLAINTEXT_LEN)
         .set(HttpHeaderNames.SERVER, serverName)
-        .set(HttpHeaderNames.DATE, s"${DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)}")
+        .set(HttpHeaderNames.DATE, date)
         .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
 
       ctx.write(response, ctx.voidPromise())
@@ -39,7 +59,7 @@ object Netty extends App {
     }
 
     override def channelUnregistered(ctx: ChannelHandlerContext): Unit = {
-      ctx.flush()
+      ctx.close()
       ()
     }
     override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
@@ -56,23 +76,25 @@ object Netty extends App {
     val value: ChannelInitializer[SocketChannel] =
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
-        pipeline.addLast("encoder", new HttpResponseEncoder())
+        pipeline.addLast("encoder", new HttpResponseEncoder)
         pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false))
         pipeline.addLast(new NettyHandler())
         ()
       }
 
     def run(): Unit = {
-      val eventLoopGroup = if (Epoll.isAvailable)
-        new EpollEventLoopGroup
-      else if (KQueue.isAvailable)
-        new KQueueEventLoopGroup
-      else new NioEventLoopGroup
-      val ServerSocketChannel = if (Epoll.isAvailable)
-        classOf[EpollServerSocketChannel]
-      else if (KQueue.isAvailable)
-        classOf[KQueueServerSocketChannel]
-      else  classOf[NioServerSocketChannel]
+      val eventLoopGroup      =
+        if (Epoll.isAvailable)
+          new EpollEventLoopGroup
+        else if (KQueue.isAvailable)
+          new KQueueEventLoopGroup
+        else new NioEventLoopGroup
+      val ServerSocketChannel =
+        if (Epoll.isAvailable)
+          classOf[EpollServerSocketChannel]
+        else if (KQueue.isAvailable)
+          classOf[KQueueServerSocketChannel]
+        else classOf[NioServerSocketChannel]
       try {
         val serverBootstrap = new ServerBootstrap
 
