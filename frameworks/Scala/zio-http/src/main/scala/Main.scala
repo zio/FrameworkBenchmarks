@@ -78,6 +78,7 @@ object Netty extends App {
         ()
       }
     }
+    ResourceLeakDetector.setLevel(Level.DISABLED)
   }
 
   new NettyServer().run()
