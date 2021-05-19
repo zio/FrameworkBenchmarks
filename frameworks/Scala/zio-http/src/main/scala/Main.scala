@@ -1,6 +1,6 @@
-/*
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelHandler.Sharable
 import io.netty.channel._
 import io.netty.channel.epoll.{Epoll, EpollEventLoopGroup, EpollServerSocketChannel}
 import io.netty.channel.kqueue.{KQueue, KQueueEventLoopGroup, KQueueServerSocketChannel}
@@ -39,7 +39,7 @@ object Netty extends App {
     1000,
     TimeUnit.MILLISECONDS,
   )
-
+  @Sharable
   class NettyHandler extends SimpleChannelInboundHandler[HttpRequest](true) {
 
     override def channelRead0(
@@ -84,14 +84,14 @@ object Netty extends App {
       ()
     }
   }
-
   class NettyServer {
+    val handlerH                                 = new NettyHandler()
     val value: ChannelInitializer[SocketChannel] =
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
         pipeline.addLast("encoder", new HttpResponseEncoder)
         pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false))
-        pipeline.addLast(new NettyHandler())
+        pipeline.addLast(handlerH)
         ()
       }
 
@@ -128,4 +128,3 @@ object Netty extends App {
 
   new NettyServer().run()
 }
-*/
