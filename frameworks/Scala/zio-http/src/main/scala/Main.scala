@@ -8,6 +8,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket._
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
+import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.util.ResourceLeakDetector.Level
 import io.netty.util.{CharsetUtil, ResourceLeakDetector}
 
@@ -57,7 +58,7 @@ object Netty extends App {
             .set(HttpHeaderNames.DATE, date)
             .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
 
-          ctx.write(response, ctx.voidPromise())
+          ctx.writeAndFlush(response, ctx.voidPromise())
         case _            =>
           val response = new DefaultFullHttpResponse(
             HttpVersion.HTTP_1_1,
@@ -65,7 +66,7 @@ object Netty extends App {
             Unpooled.EMPTY_BUFFER,
             false,
           )
-          ctx.write(response).addListener(ChannelFutureListener.CLOSE)
+          ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
       }
       ()
 
@@ -75,10 +76,7 @@ object Netty extends App {
       ctx.close()
       ()
     }
-    override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
-      ctx.flush()
-      ()
-    }
+
     override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
       ctx.close()
       ()
@@ -89,6 +87,7 @@ object Netty extends App {
     val value: ChannelInitializer[SocketChannel] =
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
+        pipeline.addLast(new FlushConsolidationHandler(256, true))
         pipeline.addLast("encoder", new HttpResponseEncoder)
         pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false))
         pipeline.addLast(handlerH)
