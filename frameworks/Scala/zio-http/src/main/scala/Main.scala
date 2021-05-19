@@ -87,7 +87,7 @@ object Netty extends App {
     val value: ChannelInitializer[SocketChannel] =
       (socketChannel: SocketChannel) => {
         val pipeline = socketChannel.pipeline
-        pipeline.addLast(new FlushConsolidationHandler(256, true))
+        // pipeline.addLast(new FlushConsolidationHandler(256, true))
         pipeline.addLast("encoder", new HttpResponseEncoder)
         pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false))
         pipeline.addLast(handlerH)
