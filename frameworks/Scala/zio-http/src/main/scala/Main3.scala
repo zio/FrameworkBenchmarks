@@ -10,12 +10,13 @@ import java.time.format.DateTimeFormatter
 object WebApp extends App {
   val port: Int                               = 8080
   val message: String                         = "Hello, World!"
+  val message1: Chunk[Byte]                   = Chunk.fromArray(message.getBytes(HTTP_CHARSET))
   def createDate: String                      = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now)
   case class Message(message: String)
   implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make
 
   val app = Http.collect[Request] {
-    case Method.GET -> Root / "plaintext" => Response.text(message)
+    case Method.GET -> Root / "plaintext" => Response.byte(message1)
     case Method.GET -> Root / "json"      => Response.jsonString(writeToString(Message(message)))
   }
 
