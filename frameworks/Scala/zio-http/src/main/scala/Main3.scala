@@ -35,7 +35,6 @@ object WebApp extends App {
         // Ensures the server doesn't die after printing
           *> ZIO.never,
       )
-      .tracingStatus(TracingStatus.untraced)
       .provideCustomLayer(ServerChannelFactory.auto ++ EventLoopGroup.auto(nThreads))
       .exitCode
   }
