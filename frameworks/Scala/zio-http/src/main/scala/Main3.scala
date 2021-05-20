@@ -2,6 +2,7 @@ import zhttp.http._
 import zhttp.service._
 import zhttp.service.server.ServerChannelFactory
 import zio._
+import zio.internal._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import java.time.ZonedDateTime
@@ -34,6 +35,7 @@ object WebApp extends App {
         // Ensures the server doesn't die after printing
           *> ZIO.never,
       )
+      .tracingStatus(TracingStatus.untraced)
       .provideCustomLayer(ServerChannelFactory.auto ++ EventLoopGroup.auto(nThreads))
       .exitCode
   }
