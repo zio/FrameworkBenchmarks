@@ -1,4 +1,3 @@
-/*
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelHandler.Sharable
@@ -48,6 +47,7 @@ object Netty extends App {
       ctx: ChannelHandlerContext,
       jReq: HttpRequest,
     ): Unit = {
+      ctx.channel.config().setAutoRead(false)
       jReq.uri() match {
         case "/plaintext" =>
           val buf      = Unpooled.wrappedBuffer(helloNetty)
@@ -128,4 +128,3 @@ object Netty extends App {
 
   new NettyServer().run()
 }
-*/
