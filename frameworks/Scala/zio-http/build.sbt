@@ -1,7 +1,7 @@
 name := "zio-http"
 
 version := "1.0.0"
-scalaVersion := "2.13.5"
+scalaVersion := "2.13.6"
 // val zhttpVersion = "1.0.0.0-RC15+19-630c92af-SNAPSHOT"
 lazy val zhttp =
   ProjectRef(uri(s"https://github.com/dream11/zio-http.git#e13a6e4fbd9a4e81427e7aaeb24c0557caf52a8b"), "zhttp")
