@@ -69,6 +69,7 @@ object Netty extends App {
           )
           ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
       }
+      ctx.read()
       ()
 
     }
