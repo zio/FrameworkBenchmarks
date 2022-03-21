@@ -3,46 +3,46 @@ package config
 import zhttp.service.{Server, UServer}
 import zio.config._
 import zio.config.magnolia.DeriveConfigDescriptor._
-
+import zio.{Has, ZIO, ZLayer, system}
 
 object BenchmarkConfig {
-  private val default = Map(
-    "leakDetectionLevel" -> "simple",
-    "acceptContinue" -> "false",
-    "disableKeepAlive" -> "false",
-    "consolidateFlush" -> "false",
-    "disableFlowControl" -> "false",
-    "maxRequestSize" -> "-1"
-  )
+  type BenchmarkConfig = Has[Service]
 
-  def fromString(level: String): UServer = level match {
+  private def leakDetectionLevel(level: String): UServer = level match {
     case "disabled" => Server.disableLeakDetection
-    case "simple" => Server.simpleLeakDetection
+    case "simple"   => Server.simpleLeakDetection
     case "advanced" => Server.advancedLeakDetection
     case "paranoid" => Server.paranoidLeakDetection
   }
 
+  private val config = descriptor[Service]
 
-  def make(args: List[String] = Nil): Either[ReadError[String], UServer] =
-    read(descriptor[Service] from ConfigSource.fromMap(default)).map { config =>
-      val server = Server.port(8090)
+  def make: ZLayer[system.System, ReadError[String], Has[Service]] = {
+    for {
+      source        <- ConfigSource.fromSystemEnv
+      configuration <- ZIO.fromEither(read(config from source))
+    } yield configuration
+  }.toLayer
 
-      server ++ fromString(config.leakDetectionLevel)
-      if (config.acceptContinue) server ++ Server.acceptContinue
-      if (config.keepAlive) server ++ Server.disableKeepAlive
-      if (config.consolidateFlush) server ++ Server.consolidateFlush
-      if (config.disableKeepAlive) server ++ Server.disableFlowControl
-      if (config.maxRequestSize > -1) server ++ Server.enableObjectAggregator(config.maxRequestSize)
+  def generateServer: ZIO[BenchmarkConfig, Nothing, UServer] = ZIO.service[Service].map { config =>
+    val server = Server.port(8080)
 
-      server
-    }
+    server ++ leakDetectionLevel(config.leakDetectionLevel)
+    if (config.acceptContinue) server ++ Server.acceptContinue
+    if (config.disableKeepAlive) server ++ Server.disableKeepAlive
+    if (config.consolidateFlush) server ++ Server.consolidateFlush
+    if (config.disableFlowControl) server ++ Server.disableFlowControl
+    if (config.maxRequestSize > -1) server ++ Server.enableObjectAggregator(config.maxRequestSize)
 
-  case class Service(
-                      leakDetectionLevel: String = "disabled",
-                      acceptContinue: Boolean = false,
-                      keepAlive: Boolean = true,
-                      consolidateFlush: Boolean = false,
-                      disableKeepAlive: Boolean = true,
-                      maxRequestSize: Int = -1
-                    )
+    server
+  }
+
+  final case class Service(
+    leakDetectionLevel: String = "disabled",
+    acceptContinue: Boolean = false,
+    disableKeepAlive: Boolean = false,
+    consolidateFlush: Boolean = true,
+    disableFlowControl: Boolean = true,
+    maxRequestSize: Int = -1,
+  )
 }
