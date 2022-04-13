@@ -1,13 +1,14 @@
 name := "zio-http"
 version := "1.0.0"
 scalaVersion := "2.13.6"
+lazy val zhttp = ProjectRef(uri(s"https://github.com/---COMMIT_SHA---"), "zhttp")
 lazy val root = (project in file("."))
   .settings(
+    fork := true,
     libraryDependencies ++=
       Seq(
         "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"   % "2.9.1",
         "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.9.1" % "compile-internal",
-        "io.d11"                                %% "zhttp"                 % "1.0.0.0-RC27",
       ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
     assembly / assemblyMergeStrategy  := {
@@ -16,4 +17,4 @@ lazy val root = (project in file("."))
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
     }
-  )
+  ).dependsOn(zhttp)
