@@ -8,6 +8,11 @@ ENV DISABLE_FLOW_CONTROL=${DISABLE_FLOW_CONTROL}
 COPY src src
 COPY project project
 COPY build.sbt build.sbt
+
+RUN echo ${LEAK_DETECTION_LEVEL} && \
+    echo ${CONSOLIDATE_FLASH} && \
+    echo ${DISABLE_FLOW_CONTROL}
+
 RUN sbt assembly
 
 EXPOSE 8080

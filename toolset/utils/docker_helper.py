@@ -40,6 +40,7 @@ class DockerHelper:
                 output = client.build(
                     path=path,
                     dockerfile=dockerfile,
+                    nocache=True,
                     tag=tag,
                     forcerm=True,
                     timeout=3600,
