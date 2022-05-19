@@ -7,4 +7,4 @@ COPY build.sbt build.sbt
 RUN sbt assembly
 
 EXPOSE 8080
-CMD java -Xms2G -Xmx2G -server -DZHttpLogLevel=DISABLE -jar /zhttp/target/scala-2.13/zio-http-assembly-1.0.0.jar%
+CMD java -Xms2G -Xmx2G -server -DZHttpLogLevel=DISABLE -jar /zhttp/target/scala-2.13/zio-http-assembly-1.0.0.jar
