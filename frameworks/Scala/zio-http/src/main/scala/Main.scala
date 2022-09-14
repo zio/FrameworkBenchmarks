@@ -51,7 +51,7 @@ object Main extends App {
   private def server(app: HttpApp[Any, Nothing]) =
     Server.app(app) ++
       Server.port(8080) ++
-      Server.error(_ => UIO.unit) ++
+      Server.onError(_ => UIO.unit) ++
       Server.disableLeakDetection ++
       Server.consolidateFlush ++
       Server.disableFlowControl
