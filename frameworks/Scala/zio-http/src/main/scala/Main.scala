@@ -1,19 +1,15 @@
-import zhttp.service.{EventLoopGroup, Server}
+package zio.http
+
 import zio._
-import zhttp.http._
-import zhttp.service.server.ServerChannelFactory
+import zio.http._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
-
 import io.netty.util.AsciiString
-
-import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
 
 case class Message(message: String)
 
-object Main extends App {
-  private val message: String = "Hello, World!"
+object Main extends ZIOAppDefault {
+  private val message: String                 = "Hello, World!"
   implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make
 
   private val plaintextPath = "/plaintext"
@@ -33,6 +29,8 @@ object Main extends App {
     .withServer(STATIC_SERVER_NAME)
     .freeze
 
+  implicit val unsafe: Unsafe = Unsafe.unsafe
+
   private def plainTextApp(response: Response) = Http.fromHExit(HExit.succeed(response)).whenPathEq(plaintextPath)
 
   private def jsonApp(json: Response) = Http.fromHExit(HExit.succeed(json)).whenPathEq(jsonPath)
@@ -42,17 +40,21 @@ object Main extends App {
     jsonResponse      <- JsonResponse
   } yield plainTextApp(plainTextResponse) ++ jsonApp(jsonResponse)
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
-    app
-      .flatMap(server(_).make.useForever)
-      .provideCustomLayer(ServerChannelFactory.auto ++ EventLoopGroup.auto(8))
-      .exitCode
 
-  private def server(app: HttpApp[Any, Nothing]) =
-    Server.app(app) ++
-      Server.port(8080) ++
-      Server.withError(_ => UIO.unit) ++
-      Server.disableLeakDetection ++
-      Server.consolidateFlush ++
-      Server.disableFlowControl
+  val config = ZLayer.succeed(
+    ServerConfig.default
+      .copy(
+        nThreads = 8,
+        consolidateFlush = true,
+        flowControl = false,
+        leakDetectionLevel = ServerConfig.LeakDetectionLevel.DISABLED,
+      ),
+  )
+
+  override val run =
+  app
+    .tap(_ => ZIO.debug(s">>>>>>>>>>>>>>>>>>>>>> STARTING BENCHMARK SERVER <<<<<<<<<<<<<<<<<<<<<<<<<<"))
+    .flatMap(Server.serve(_, None))
+    .provide(config, Server.live)
+
 }
