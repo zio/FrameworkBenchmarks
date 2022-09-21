@@ -2,15 +2,11 @@ package zio.http
 
 import zio._
 import zio.http._
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
 import io.netty.util.AsciiString
 
-case class Message(message: String)
-
 object Main extends ZIOAppDefault {
-  private val message: String                 = "Hello, World!"
-  implicit val codec: JsonValueCodec[Message] = JsonCodecMaker.make
+  private val message: String = "Hello, World!"
+  private val json: String    = s"""{"message":"$message"}"""
 
   private val plaintextPath = "/plaintext"
   private val jsonPath      = "/json"
@@ -18,7 +14,7 @@ object Main extends ZIOAppDefault {
   private val STATIC_SERVER_NAME = AsciiString.cached("zio-http")
 
   private val JsonResponse = Response
-    .json(writeToString(Message(message)))
+    .json(json)
     .withServerTime
     .withServer(STATIC_SERVER_NAME)
     .freeze
@@ -28,8 +24,6 @@ object Main extends ZIOAppDefault {
     .withServerTime
     .withServer(STATIC_SERVER_NAME)
     .freeze
-
-  implicit val unsafe: Unsafe = Unsafe.unsafe
 
   private def plainTextApp(response: Response) = Http.fromHExit(HExit.succeed(response)).whenPathEq(plaintextPath)
 
