@@ -1,54 +1,63 @@
-package zio.http
+package example
 
-import zio._
-import zio.http._
 import io.netty.util.AsciiString
+import zio._
+import zio.http.ServerConfig.LeakDetectionLevel
+import zio.http._
 
+/**
+ * This server is used to run plaintext benchmarks on CI.
+ */
 object Main extends ZIOAppDefault {
-  private val message: String = "Hello, World!"
-  private val json: String    = s"""{"message":"$message"}"""
+
+  private val plainTextMessage: String = "Hello, World!"
+  private val jsonMessage: String      = """{"message": "Hello World!"}"""
 
   private val plaintextPath = "/plaintext"
   private val jsonPath      = "/json"
 
   private val STATIC_SERVER_NAME = AsciiString.cached("zio-http")
 
-  private val JsonResponse = Response
-    .json(json)
+  private val frozenJsonResponse = Response
+    .json(jsonMessage)
     .withServerTime
     .withServer(STATIC_SERVER_NAME)
     .freeze
 
-  private val PlainTextResponse = Response
-    .text(message)
+  private val frozenPlainTextResponse = Response
+    .text(plainTextMessage)
     .withServerTime
     .withServer(STATIC_SERVER_NAME)
     .freeze
 
-  private def plainTextApp(response: Response) = Http.fromHExit(HExit.succeed(response)).whenPathEq(plaintextPath)
+  private def plainTextApp(response: Response) =
+    Unsafe.unsafe { implicit u =>
+      Http.fromHExit(HExit.succeed(response)).whenPathEq(plaintextPath)
+    }
 
-  private def jsonApp(json: Response) = Http.fromHExit(HExit.succeed(json)).whenPathEq(jsonPath)
+  private def jsonApp(json: Response) =
+    Unsafe.unsafe { implicit u =>
+      Http.fromHExit(HExit.succeed(json)).whenPathEq(jsonPath)
+    }
 
   private def app = for {
-    plainTextResponse <- PlainTextResponse
-    jsonResponse      <- JsonResponse
+    plainTextResponse <- frozenPlainTextResponse
+    jsonResponse      <- frozenJsonResponse
   } yield plainTextApp(plainTextResponse) ++ jsonApp(jsonResponse)
 
+  private val config = ServerConfig.default
+    .port(8080)
+    .maxThreads(8)
+    .leakDetection(LeakDetectionLevel.DISABLED)
+    .consolidateFlush(true)
+    .flowControl(false)
+    .objectAggregator(-1)
 
-  val config = ZLayer.succeed(
-    ServerConfig.default
-      .copy(
-        nThreads = 8,
-        consolidateFlush = true,
-        flowControl = false,
-        leakDetectionLevel = ServerConfig.LeakDetectionLevel.DISABLED,
-      ),
-  )
+  private val configLayer = ServerConfig.live(config)
 
-  override val run =
-  app
-    .tap(_ => ZIO.debug(s">>>>>>>>>>>>>>>>>>>>>> STARTING BENCHMARK SERVER <<<<<<<<<<<<<<<<<<<<<<<<<<"))
-    .flatMap(Server.serve(_, None))
-    .provide(config, Server.live)
+  val run: UIO[ExitCode] =
+    app
+      .flatMap(Server.serve(_).provide(configLayer, Server.live))
+      .exitCode
 
 }
