@@ -1,6 +1,7 @@
 FROM hseeberger/scala-sbt:11.0.12_1.5.5_2.13.6
 
 WORKDIR /zio-http
+COPY zio-http zio-http
 COPY src src
 COPY project project
 COPY build.sbt build.sbt
