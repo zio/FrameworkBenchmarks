@@ -1,7 +1,7 @@
 name := "zio-http"
 version := "1.0.0"
 scalaVersion := "2.13.10"
-lazy val zioHttpJVM = ProjectRef(uri(s"https://github.com/---COMMIT_SHA---"), "zioHttpJVM")
+lazy val zioHttpJVM = ProjectRef(file("./zio-http"), "zioHttpJVM")
 lazy val root  = (project in file("."))
   .settings(
     name := "helloExample",
