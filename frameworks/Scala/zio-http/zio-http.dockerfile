@@ -5,6 +5,7 @@ COPY zio-http zio-http
 COPY src src
 COPY project project
 COPY build.sbt build.sbt
+COPY .git .git
 RUN sbt assembly
 
 EXPOSE 8080
