@@ -1,7 +1,7 @@
 name := "zio-http"
 version := "1.0.0"
-scalaVersion := "2.13.10"
-lazy val zhttp = ProjectRef(uri(s"https://github.com/---COMMIT_SHA---"), "zioHttp")
+scalaVersion := "2.13.12"
+lazy val zioHttpJVM = ProjectRef(file("./zio-http"), "zioHttpJVM")
 lazy val root  = (project in file("."))
   .settings(
     name := "helloExample",
@@ -18,4 +18,4 @@ lazy val root  = (project in file("."))
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
     }
-  ).dependsOn(zhttp)
+  ).dependsOn(zioHttpJVM)
