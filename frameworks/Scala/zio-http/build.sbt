@@ -1,6 +1,6 @@
 name := "zio-http"
 version := "1.0.0"
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.16"
 lazy val zioHttpJVM = ProjectRef(file("./zio-http"), "zioHttpJVM")
 lazy val root  = (project in file("."))
   .settings(
