@@ -17,5 +17,9 @@ lazy val root  = (project in file("."))
       case x =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
-    }
+    },
+    assemblyMergeStrategy in assembly := {
+     case PathList("META-INF", "versions", _ @ _*) => MergeStrategy.discard
+     case x => (assemblyMergeStrategy in assembly).value(x)
+   }
   ).dependsOn(zioHttpJVM)
