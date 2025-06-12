@@ -4,6 +4,7 @@ WORKDIR /zio-http
 COPY zio-http zio-http
 COPY src src
 COPY project project
+COPY .git .git
 COPY build.sbt build.sbt
 RUN sbt assembly
 
