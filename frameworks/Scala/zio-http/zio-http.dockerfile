@@ -1,6 +1,7 @@
 FROM sbtscala/scala-sbt:eclipse-temurin-21.0.6_7_1.10.11_2.13.16
 
 WORKDIR /zio-http
+COPY zio-http zio-http
 COPY src src
 COPY project project
 COPY build.sbt build.sbt
