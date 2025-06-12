@@ -4,7 +4,7 @@ COPY build.gradle build.gradle
 COPY src src
 RUN gradle install --refresh-dependencies --no-daemon
 
-FROM openjdk:11.0.5-jre-stretch
+FROM oeclipse-temurin:17
 WORKDIR /jawn
 COPY --from=gradle /jawn/build/install/jawn .
 ENTRYPOINT ["bin/jawn"]
