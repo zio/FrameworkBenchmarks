@@ -16,15 +16,19 @@ from psutil import virtual_memory
 # total memory limit allocated for the test container
 mem_limit = int(round(virtual_memory().total * .95))
 
+# docker-py 4.0.2 defaults to Docker API 1.35, which current Docker daemons reject
+# ("client version 1.35 is too old. Minimum supported API version is 1.40").
+DOCKER_API_VERSION = '1.41'
+
 class DockerHelper:
     def __init__(self, benchmarker=None):
         self.benchmarker = benchmarker
 
-        self.client = docker.DockerClient(
+        self.client = docker.DockerClient(version=DOCKER_API_VERSION,
             base_url=self.benchmarker.config.client_docker_host)
-        self.server = docker.DockerClient(
+        self.server = docker.DockerClient(version=DOCKER_API_VERSION,
             base_url=self.benchmarker.config.server_docker_host)
-        self.database = docker.DockerClient(
+        self.database = docker.DockerClient(version=DOCKER_API_VERSION,
             base_url=self.benchmarker.config.database_docker_host)
 
     def __build(self, base_url, path, build_log_file, log_prefix, dockerfile,
@@ -36,7 +40,7 @@ class DockerHelper:
         self.benchmarker.time_logger.mark_build_start()
         with open(build_log_file, 'w') as build_log:
             try:
-                client = docker.APIClient(base_url=base_url)
+                client = docker.APIClient(base_url=base_url, version=DOCKER_API_VERSION)
                 output = client.build(
                     path=path,
                     dockerfile=dockerfile,
